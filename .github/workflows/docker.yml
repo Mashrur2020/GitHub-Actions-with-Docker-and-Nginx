@@ -15,11 +15,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Normalize DockerHub username (must be lowercase or the auth header is malformed)
+      - name: Normalize DockerHub username
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        run: echo "DOCKER_USERNAME_LC=${DOCKER_USERNAME,,}" >> "$GITHUB_ENV"
+
       # Login to DockerHub
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
+          username: ${{ env.DOCKER_USERNAME_LC }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       # Build Image
@@ -37,5 +43,5 @@ jobs:
       # Push Image
       - name: Push to DockerHub
         run: |
-          docker tag mynginx:test ${{ secrets.DOCKER_USERNAME }}/mynginx:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/mynginx:latest
+          docker tag mynginx:test ${{ env.DOCKER_USERNAME_LC }}/mynginx:latest
+          docker push ${{ env.DOCKER_USERNAME_LC }}/mynginx:latest
